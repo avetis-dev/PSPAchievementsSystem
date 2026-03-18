@@ -1,0 +1,49 @@
+# PSP Achievements System - Git Ignore
+
+# Keep only release folder and documentation
+# Ignore source code (keep in separate dev repo)
+
+# Source code directories
+runtime_prx/
+converter/
+tools/
+external/
+docs/
+
+# Build artifacts
+*.o
+*.elf
+*.prx
+*.PBP
+*.sfo
+*.exp
+
+# Build directories
+build/
+out/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
