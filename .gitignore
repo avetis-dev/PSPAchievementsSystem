@@ -1,0 +1,25 @@
+*.o
+*.elf
+*.prx
+*.sfo
+EBOOT.PBP
+exports.c
+
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+*.prof
+active_profile.txt
+pach_log.txt
+pach_test.txt
+
+build_log.txt
+ENDOFFILE
