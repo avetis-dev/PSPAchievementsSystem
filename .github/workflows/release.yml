@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/pspdev/pspsdk:latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build PRX
+        run: |
+          make clean
+          make
+          make dist
+
+      - name: Upload PRX
+        uses: actions/upload-artifact@v4
+        with:
+          name: PSPAchievementsNG-prx
+          path: dist/PSPAchievementsNG.prx
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Download PRX
+        uses: actions/download-artifact@v4
+        with:
+          name: PSPAchievementsNG-prx
+          path: dist
+
+      - name: Validate public tree
+        run: python3 scripts/check_public_tree.py .
+
+      - name: Build release ZIP
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          VERSION="${VERSION#v}"
+          python3 scripts/make_release.py --version "$VERSION"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: GITHUB_RELEASE_BODY.md
+          files: |
+            release/*.zip
+            release/*.sha256

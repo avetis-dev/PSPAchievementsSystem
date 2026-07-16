@@ -1,123 +1,306 @@
-# 🏆 PSP Achievements (ARK-4)
+# PSP Achievements System
 
-> Unlock achievements on real PSP hardware — completely offline.
+<p align="center">
+  <strong>Offline achievements for real PlayStation Portable hardware.</strong>
+</p>
 
-A kernel-mode PRX plugin that brings [RetroAchievements](https://retroachievements.org/)-style trophies to the Sony PSP. It evaluates achievement logic in real-time by reading game RAM, with no network connection required.
+<p align="center">
+  <a href="https://github.com/avetis-dev/PSPAchievementsSystem/actions/workflows/build.yml"><img alt="Build" src="https://github.com/avetis-dev/PSPAchievementsSystem/actions/workflows/build.yml/badge.svg"></a>
+  <a href="https://github.com/avetis-dev/PSPAchievementsSystem/releases"><img alt="Release" src="https://img.shields.io/github/v/release/avetis-dev/PSPAchievementsSystem?display_name=tag"></a>
+  <img alt="Platform" src="https://img.shields.io/badge/platform-PSP-2d6cdf">
+  <img alt="Runtime" src="https://img.shields.io/badge/runtime-PSPAchievementsNG-4c8f2f">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-brightgreen">
+</p>
 
----
+PSP Achievements System is a GAME-mode kernel plugin for custom-firmware PSP consoles. The current runtime, **PSPAchievementsNG**, evaluates achievement conditions directly from game memory and provides unlock notifications, sound, badge artwork, persistent profiles, live progress, and an in-game achievement browser.
 
-## ✨ Features
+The plugin works locally after installation. Version **1.0.0** does not require an account or a permanent network connection.
 
-| | |
+> [!IMPORTANT]
+> Version 1.0.0 is a complete replacement for the legacy releases previously published in this repository. Perform a clean migration instead of copying the new files over the old `PspAchievements.prx` / `PSP/ACH` layout.
+
+## Features
+
+- Real-time achievement evaluation on physical PSP hardware.
+- Automatic game detection by PSP Game ID.
+- Independent `.pach` packages for every supported game and region.
+- Optional `.pbad` badge packs with locked and unlocked artwork.
+- Achievement notifications with a synthesized unlock sound.
+- Persistent per-game profiles stored on the Memory Stick.
+- Checksum validation, temporary writes, and automatic `.bak` recovery.
+- In-game achievement browser with badge artwork and descriptions.
+- `ALL`, `LOCKED`, and `UNLOCKED` filters.
+- Live measured progress such as `7 / 10` where the achievement logic exposes it safely.
+- Configurable menu hotkey, notification duration, audio, logging, and performance mode.
+- Memory-read caching and adaptive scheduling for large achievement sets.
+- Fully local runtime after the plugin and matching game packages are installed.
+
+## Tested hardware
+
+| Device / environment | Status |
 |---|---|
-| 🎯 **Real-Time Evaluation** | Custom logic parser runs alongside the game with zero lag |
-| 🖼 **In-Game Popups** | Trophy-style notifications rendered directly to the framebuffer |
-| 💾 **Tiny Footprint** | Runs smoothly even alongside heavy games like God of War |
-| 🔍 **Auto-Detection** | Identifies the running game automatically |
-| 📴 **Fully Offline** | No Wi-Fi, no server — everything runs locally |
-| 💿 **Persistent Profile** | Progress saved to Memory Stick across sessions |
+| PSP-3000, ARK-4, Memory Stick path `ms0:` | **Tested and supported** |
+| PSP-1000 / PSP-2000 / PSP Street with ARK-4 | Expected to work; community verification needed |
+| PSP Go with external M2 storage exposed as `ms0:` | Untested |
+| PSP Go internal storage `ef0:` | Not supported in v1.0.0 |
+| PRO-C / LME | Untested |
+| PS Vita / Adrenaline | Not supported or tested |
+| PPSSPP | Not a runtime target; the plugin is intended for real PSP hardware |
+| Official firmware without CFW | Not supported |
 
-<details>
-<summary><strong>Supported RA Logic</strong></summary>
+Only the PSP-3000 + ARK-4 configuration is currently considered officially verified.
 
-- **Conditions:** Delta, Prior, HitCounts, ResetIf, PauseIf, AndNext, OrNext, AddSource, SubSource, AddAddress, ResetNextIf, Trigger, Measured, MeasuredIf
-- **Groups:** Core + Alternate group evaluation
-- **Memory Sizes:** 8-bit, 16-bit, 24-bit, 32-bit, Bit0–Bit7, Float LE, Float BE
+## Supported games
 
-</details>
+Game support is tied to the **exact PSP Game ID and executable revision**. A package for one region cannot be made compatible with another region by renaming it.
 
----
+| Game | Region / revision | PSP Game ID | Achievements | Points | Evaluator | Status |
+|---|---|---:|---:|---:|---|---|
+| Silent Hill: Origins | USA | `ULUS-10285` | 66 | 666 | Full-rate | Tested on hardware |
+| Dante's Inferno | USA | `ULUS-10469` | 63 | 666 | Full-rate | Tested on hardware |
+| Grand Theft Auto: Liberty City Stories | Europe v3.00 | `ULES-00151` | 105 | 1016 | Adaptive | Tested on hardware |
 
-## 🎮 Supported Games
+GTA: Liberty City Stories requires the European `ULES-00151` release. The USA release is not currently supported. GTA may still have a small performance cost because its package contains substantially more conditions than the other tested games.
 
-<details>
-<summary><strong>Click to expand game list</strong></summary>
+See [Supported Games](docs/SUPPORTED_GAMES.md) for exact notes.
 
-| Game | Region | Game Code | Achievements | Status |
-|------|--------|-----------|--------------|--------|
-| God of War: Chains of Olympus | EUR | `UCES00842` | 39 | ✅ Working |
-| Silent Hill: Origins | USA | `ULUS10285` | 28 | ✅ Working |
+## Release files
 
-</details>
+A normal v1.0.0 installation uses two release assets:
 
----
-
-## 📥 Installation
-
-1. Install **ARK-4** custom firmware on your PSP.
-2. Download the latest release.
-3. Copy files to your Memory Stick:
-
+```text
+PSPAchievementsSystem-v1.0.0.zip
+PSPAchievementsSystem-v1.0.0-supported-games.zip
 ```
+
+The main archive contains the plugin, default configuration, and documentation. The supported-games archive contains the matching `.pach` achievement packages and `.pbad` badge packs for the three tested games.
+
+## Quick installation
+
+1. Back up any existing PSP achievement profiles.
+2. Remove or disable the legacy `PspAchievements.prx` plugin entry.
+3. Extract the v1.0.0 plugin archive.
+4. Copy its `SEPLUGINS` directory to the root of the Memory Stick.
+5. Copy the contents of the supported-games archive to:
+
+   ```text
+   ms0:/SEPLUGINS/PSPAchievementsNG/games/
+   ```
+
+6. Add this line to `ms0:/SEPLUGINS/GAME.TXT`:
+
+   ```text
+   ms0:/SEPLUGINS/PSPAchievementsNG/PSPAchievementsNG.prx 1
+   ```
+
+7. Restart the PSP completely and launch a supported game.
+
+Read the complete [Installation Guide](docs/INSTALLATION.md), especially when upgrading from a legacy release.
+
+## Memory Stick layout
+
+```text
 ms0:/
-├── seplugins/
-│   └── PspAchievements.prx
-└── PSP/
-    └── ACH/
-        ├── game_map.dat
-        └── games/
-            ├── 3927.ach
-            └── 26296.ach
+└── SEPLUGINS/
+    ├── GAME.TXT
+    └── PSPAchievementsNG/
+        ├── PSPAchievementsNG.prx
+        ├── config.ini
+        ├── games/
+        │   ├── ULUS-10285.pach
+        │   ├── ULUS-10285.pbad
+        │   ├── ULUS-10469.pach
+        │   ├── ULUS-10469.pbad
+        │   ├── ULES-00151.pach
+        │   └── ULES-00151.pbad
+        ├── profiles/
+        │   ├── ULUS-10285.dat
+        │   ├── ULUS-10285.bak
+        │   └── ...
+        └── logs/
+            └── plugin.log
 ```
 
-4. Enable the plugin in ARK-4 Recovery Menu:  
-   `game, ms0:/seplugins/PspAchievements.prx, on`
-5. Launch your game and enjoy!
+`profiles/` and `logs/` are created automatically. Do not place `.pach` or `.pbad` files in `profiles/`.
 
----
+## In-game menu
 
-## 🛠 Building from Source
+Hold the default hotkey for approximately 400 ms:
 
-Requires [PSPSDK](https://github.com/pspdev/pspsdk).
+```text
+L + R + SELECT
+```
+
+| Control | Action |
+|---|---|
+| Up / Down | Select the previous or next achievement |
+| Left / Right | Move one page |
+| Triangle | Switch `ALL / LOCKED / UNLOCKED` |
+| L / R | Jump to the first or last item in the current filter |
+| Circle | Close the menu |
+
+The game is temporarily paused while the menu is open to keep the framebuffer stable. The achievement evaluator is paused at the same time.
+
+## Configuration
+
+The plugin reads this file when a game starts:
+
+```text
+ms0:/SEPLUGINS/PSPAchievementsNG/config.ini
+```
+
+Recommended configuration:
+
+```ini
+[general]
+enabled = 1
+logging = 1
+
+[notifications]
+enabled = 1
+startup = 1
+duration_ms = 4000
+startup_duration_ms = 2500
+
+[audio]
+enabled = 1
+volume = 100
+startup_sound = 1
+unlock_sound = 1
+
+[menu]
+enabled = 1
+hotkey = L+R+SELECT
+hold_ms = 400
+show_badges = 1
+
+[performance]
+mode = auto
+```
+
+Keep `performance.mode = auto` unless diagnosing a problem. Forcing `full` can make GTA: Liberty City Stories difficult to play.
+
+See [Configuration](docs/CONFIGURATION.md).
+
+## Verifying the installation
+
+After launching a supported game, open:
+
+```text
+ms0:/SEPLUGINS/PSPAchievementsNG/logs/plugin.log
+```
+
+A normal startup contains lines similar to:
+
+```text
+PSPAchievementsNG 1.0.0
+config loaded
+game identification succeeded
+game package found
+achievement engine initialized
+game package loaded
+badge pack loaded
+startup notification queued
+achievement menu ready
+```
+
+The log is the first place to check when a package is missing, a region is unsupported, icons do not load, or performance is poor.
+
+## Profiles and backups
+
+Each game receives its own profile:
+
+```text
+profiles/GAME-ID.dat
+profiles/GAME-ID.bak
+```
+
+The plugin writes new data to a temporary file, validates it, keeps the previous valid profile as `.bak`, and then replaces the main `.dat`. If the main profile becomes damaged, the plugin attempts to restore it automatically from the backup.
+
+Back up the whole `profiles/` directory before replacing a Memory Stick or performing a clean installation.
+
+## Updating
+
+For updates within the PSPAchievementsNG line:
+
+1. Back up `profiles/`.
+2. Replace `PSPAchievementsNG.prx`.
+3. Replace `config.ini` only when the release notes require it.
+4. Keep existing `.pach`, `.pbad`, `.dat`, and `.bak` files unless the release notes explicitly say otherwise.
+5. Restart the PSP completely.
+
+For migration from legacy repository releases, follow [Legacy Migration](docs/LEGACY_MIGRATION.md).
+
+## Building from source
+
+PSPDEV / PSPSDK is required.
 
 ```bash
-cd plugin
-make clean && make
+export PSPDEV="$HOME/pspdev"
+export PATH="$PATH:$PSPDEV/bin"
+
+make clean
+make
+make dist
 ```
 
----
+Output:
 
-## 🗺 Architecture
+```text
+dist/PSPAchievementsNG.prx
+dist/config.ini
+```
 
-| Module | Description |
-|--------|-------------|
-| `main.c` | Thread management, game detection, main loop |
-| `rcheevos_glue.c` | Core logic evaluator — parses RA syntax, tracks delta/prior states |
-| `memory.c` | Safe kernel-mode RAM access via kseg0 with 25-bit address masking |
-| `popup.c` | Direct framebuffer rendering without interrupting game graphics |
-| `profile.c` | Achievement progress persistence to Memory Stick |
-| `game_map.c` | UMD game code → achievement data file mapping |
+The repository also includes GitHub Actions workflows that build the PRX and create release archives from version tags. See [Building](docs/BUILDING.md).
 
----
+## Known limitations
 
-## 🚀 Roadmap
+- Version 1.0.0 is offline-only; there are no accounts, cloud synchronization, public profiles, leaderboards, or social sharing.
+- Only the exact Game IDs listed above are currently supported.
+- PSP Go internal `ef0:` storage is not supported.
+- Very large achievement sets can still cause a small performance cost.
+- Some achievement definitions intentionally reject cheat-enabled game states.
+- Badge packs are optional; achievements still work when `.pbad` is missing.
+- Menu thread suspension has only been verified with the three listed games.
 
-- [x] Base RA logic parsing
-- [x] Framebuffer popup rendering
-- [x] Memory safety & RAM limits
-- [x] Save/Load profile progress
-- [x] Float (LE/BE) support
-- [x] Bit-level memory reads (Bit0–Bit7)
-- [x] ADD_ADDRESS pointer chains
-- [x] Delta & Prior snapshot tracking
-- [ ] Audio notification on unlock
-- [ ] Support more games
+See [Troubleshooting](docs/TROUBLESHOOTING.md) before opening an issue.
 
----
+## Reporting a problem
 
-## 🙏 Credits
+Create an issue and include:
 
-- **[RetroAchievements](https://retroachievements.org/)** — Achievement definitions and community
-- **[PPSSPP](https://www.ppsspp.org/)** — Emulator used for development and testing
-- **[PSPSDK](https://github.com/pspdev/pspsdk)** — PSP development framework
+- PSP model;
+- CFW name and version;
+- plugin version;
+- game title, region, and exact Game ID;
+- clear reproduction steps;
+- whether the issue occurs with the achievement menu closed;
+- the relevant section of `plugin.log`.
 
----
+Remove unrelated personal paths or data from logs before posting them.
 
-## 📄 License
+## Repository policy
 
-This project is provided for **educational purposes only**.
+The public Git repository intentionally excludes:
 
-- 📚 Free to use for personal projects
-- 🔧 Free to modify for learning
-- ❌ Not for commercial use
-- ⚠️ Use at your own risk
+- captured service responses and raw trigger definitions;
+- downloaded badge caches;
+- compiled `.pach` and `.pbad` game packages;
+- player profiles, backups, and logs;
+- PRX, ELF, object files, and local build output;
+- old release archives, `.patch-backups`, and operating-system metadata;
+- credentials, tokens, account data, or private endpoints.
+
+Run this before every public commit:
+
+```bash
+make public-check
+```
+
+See [Repository Policy](docs/REPOSITORY_POLICY.md).
+
+## Credits and legal notice
+
+PSP Achievements System is an independent community project. It is not affiliated with or endorsed by Sony Interactive Entertainment, ARK-4, PPSSPP, or RetroAchievements. PlayStation and PSP are trademarks of their respective owners.
+
+No open-source license has been selected for the repository yet. Source availability does not automatically grant redistribution or commercial-use rights. See [License Notice](LICENSE_NOTICE.md).

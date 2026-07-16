@@ -1,0 +1,11 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.md text eol=lf
+*.ini text eol=lf
+*.exp text eol=lf
+*.prx binary
+*.pach binary
+*.pbad binary

@@ -1,0 +1,31 @@
+name: Build
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/pspdev/pspsdk:latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build PRX
+        run: |
+          make clean
+          make
+          make dist
+
+      - name: Upload PRX
+        uses: actions/upload-artifact@v4
+        with:
+          name: PSPAchievementsNG-prx
+          path: dist/PSPAchievementsNG.prx
+          if-no-files-found: error

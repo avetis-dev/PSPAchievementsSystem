@@ -1,26 +1,63 @@
+# macOS / Windows metadata
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# PSP build artifacts
 *.o
+*.a
 *.elf
 *.prx
 *.sfo
-EBOOT.PBP
+*.pbp
+*.map
 exports.c
 
-.DS_Store
-*.swp
-*~
-.vscode/
-.idea/
+# Generated output
+plugin/build/
+dist/
+release/
+releases/
+cmake-build-*/
+.patch-backups/
 
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
 venv/
 
-*.prof
-active_profile.txt
-pach_log.txt
-pach_test.txt
+# Runtime data
+*.log
+*.dmp
+*.dump
+*.dat
+*.bak
+*.tmp
+profiles/
+logs/
 
-build_log.txt
-command.txt
+# Captured or generated achievement data
 *.jsonl
+*.raw.json
+*.pach
+*.pbad
+*.pach.report.json
+*.game.json
+tools/ra_import/captures/
+tools/ra_import/badge_cache/
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key

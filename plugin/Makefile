@@ -1,19 +1,21 @@
-TARGET = PspAchievements
-OBJS = src/main.o src/profile.o src/game_db.o src/game_map.o \
-       src/detect.o src/popup.o src/memory.o src/rcheevos_glue.o \
-       src/beep.o
+TARGET = PSPAchievementsNG
+
+OBJS = src/main.o src/config.o src/logger.o src/game_detector.o src/game_context.o src/memory.o src/memory_watch.o src/package.o src/badge.o src/achievement.o src/profile.o src/notification.o src/sound.o src/overlay.o
+
+INCDIR = include ../shared/include
+LIBDIR =
+
+CFLAGS = -O2 -G0 -Wall -Wextra -Wpedantic
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
 
 BUILD_PRX = 1
-PRX_EXPORTS = exports.exp
-
-USE_KERNEL_LIBC = 1
 USE_KERNEL_LIBS = 1
 
-INCDIR = src
-CFLAGS = -O2 -G0 -Wall -Wextra -std=c99
-LDFLAGS =
-# Added -lpspaudio for CPU-generated beep sound
-LIBS = -lpspdisplay -lpspctrl -lpsprtc -lpspaudio_driver
+PRX_EXPORTS = exports.exp
 
-PSPSDK = $(shell psp-config --pspsdk-path)
+LIBS = -lpspaudio
+LDFLAGS =
+
+PSPSDK := $(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
