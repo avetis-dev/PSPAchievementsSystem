@@ -1,4 +1,4 @@
-# Publishing v1.0.0 to GitHub
+# Publishing v2.0.0 to GitHub
 
 Target repository:
 
@@ -42,15 +42,15 @@ git pull --ff-only origin main
 ## 3. Create a safety branch
 
 ```bash
-git switch -c release/v1.0.0-ng
+git switch -c release/v2.0.0
 ```
 
-Optional backup tag for the old main state:
+Optional backup tag for the current v1 release state:
 
 ```bash
-git tag -a backup-before-ng-v1.0.0 \
-  -m "Backup before PSPAchievementsNG v1.0.0"
-git push origin backup-before-ng-v1.0.0
+git tag -a backup-before-v2.0.0 \
+  -m "Backup before PSPAchievementsNG v2.0.0"
+git push origin backup-before-v2.0.0
 ```
 
 ## 4. Replace the working tree
@@ -60,7 +60,7 @@ Extract the prepared GitHub-ready archive, then copy it into the cloned reposito
 ```bash
 rsync -av --delete \
   --exclude='.git/' \
-  /path/to/PSPAchievementsSystem-v1.0.0-github-ready/ \
+  /path/to/PSPAchievementsSystem-v2.0.0-github-ready/ \
   "$HOME/Developer/PSPAchievementsSystem-public/"
 ```
 
@@ -89,8 +89,8 @@ The second command should print nothing.
 ```bash
 git add -A
 git status --short
-git commit -m "Release PSPAchievementsNG v1.0.0 rewrite"
-git push -u origin release/v1.0.0-ng
+git commit -m "Release PSPAchievementsNG v2.0.0"
+git push -u origin release/v2.0.0
 ```
 
 ## 7. Open and merge a pull request
@@ -98,9 +98,9 @@ git push -u origin release/v1.0.0-ng
 ```bash
 gh pr create \
   --base main \
-  --head release/v1.0.0-ng \
-  --title "PSPAchievementsNG v1.0.0 rewrite" \
-  --body "Replaces the legacy runtime with the tested multi-game PSPAchievementsNG implementation, new documentation, profiles, badges, sound, menu, configuration, and adaptive performance support."
+  --head release/v2.0.0 \
+  --title "PSPAchievementsNG v2.0.0" \
+  --body-file GITHUB_RELEASE_BODY.md
 
 gh pr view --web
 ```
@@ -121,12 +121,12 @@ git pull --ff-only origin main
 ## 8. Create the release tag
 
 ```bash
-git tag -a v1.0.0 \
-  -m "PSP Achievements System v1.0.0 — PSPAchievementsNG rewrite"
-git push origin v1.0.0
+git tag -a v2.0.0 \
+  -m "PSP Achievements System v2.0.0"
+git push origin v2.0.0
 ```
 
-The repository already has legacy `v1.0.1`–`v1.0.3` tags. In the release description, clearly state that v1.0.0 is a complete runtime reset and supersedes the legacy implementation. Mark the new release as **Latest** manually if GitHub does not select it automatically.
+Mark the new release as **Latest** manually if GitHub does not select it automatically.
 
 ## 9. Upload the supported-games asset
 
@@ -135,8 +135,8 @@ The generated source tree must not contain `.pach` or `.pbad` files. Upload the 
 Suggested release assets:
 
 ```text
-PSPAchievementsSystem-v1.0.0.zip
-PSPAchievementsSystem-v1.0.0.zip.sha256
-PSPAchievementsSystem-v1.0.0-supported-games.zip
-PSPAchievementsSystem-v1.0.0-supported-games.zip.sha256
+PSPAchievementsSystem-v2.0.0.zip
+PSPAchievementsSystem-v2.0.0.zip.sha256
+PSPAchievementsSystem-v2.0.0-supported-games.zip
+PSPAchievementsSystem-v2.0.0-supported-games.zip.sha256
 ```

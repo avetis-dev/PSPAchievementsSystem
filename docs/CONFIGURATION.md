@@ -1,4 +1,4 @@
-# Configuration — v1.0.0
+# Configuration — v2.0.0
 
 Configuration is loaded once when the plugin starts in GAME mode:
 

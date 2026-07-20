@@ -1,5 +1,6 @@
 #include <pspkernel.h>
 #include <pspthreadman.h>
+#include <pspsysmem.h>
 
 #include <stddef.h>
 #include "pach_achievement.h"
@@ -53,7 +54,6 @@ static SceUID g_overlay_thread_id = -1;
 
 static PachGameContext g_game_context;
 static PachMemoryWatch g_probe_watch;
-static PachPackageInfo g_package_info;
 static PachBadgePack g_badge_pack;
 static PachProfile g_profile;
 static PachProfilePaths g_profile_paths;
@@ -61,7 +61,21 @@ static PachProfilePaths g_profile_paths;
 static PachNotificationQueue g_notification_queue;
 static PachOverlay g_overlay;
 
-static PachAchievementEngine g_achievement_engine;
+typedef struct PachRuntimeStorage {
+    PachPackageInfo package_info;
+    PachAchievementEngine achievement_engine;
+} PachRuntimeStorage;
+
+#define PACH_RUNTIME_STORAGE_PARTITION 2
+
+static SceUID g_runtime_storage_id = -1;
+static PachRuntimeStorage *g_runtime_storage = NULL;
+
+#define g_package_info \
+    (g_runtime_storage->package_info)
+#define g_achievement_engine \
+    (g_runtime_storage->achievement_engine)
+
 static PachAchievementEvent g_achievement_events[PACH_ACHIEVEMENT_MAX];
 
 static char g_package_path[PACH_PACKAGE_PATH_CAPACITY];
@@ -77,6 +91,75 @@ static int g_package_attempted = 0;
 static int g_achievement_engine_failed = 0;
 static int g_profile_ready = 0;
 static int g_performance_logged = 0;
+
+static void pach_runtime_storage_zero(
+    PachRuntimeStorage *storage)
+{
+    u8 *bytes;
+    u32 index;
+
+    if (storage == NULL) {
+        return;
+    }
+
+    bytes = (u8 *)storage;
+
+    for (index = 0;
+         index < (u32)sizeof(PachRuntimeStorage);
+         ++index) {
+
+        bytes[index] = 0;
+    }
+}
+
+static int pach_runtime_storage_allocate(void)
+{
+    SceUID block_id;
+    void *address;
+
+    if (g_runtime_storage != NULL &&
+        g_runtime_storage_id >= 0) {
+
+        return 0;
+    }
+
+    block_id = sceKernelAllocPartitionMemory(
+        PACH_RUNTIME_STORAGE_PARTITION,
+        "PachRuntimeStorage",
+        PSP_SMEM_High,
+        (SceSize)sizeof(PachRuntimeStorage),
+        NULL
+    );
+
+    if (block_id < 0) {
+        return block_id;
+    }
+
+    address = sceKernelGetBlockHeadAddr(block_id);
+
+    if (address == NULL) {
+        (void)sceKernelFreePartitionMemory(block_id);
+        return -1;
+    }
+
+    g_runtime_storage_id = block_id;
+    g_runtime_storage = (PachRuntimeStorage *)address;
+    pach_runtime_storage_zero(g_runtime_storage);
+
+    return 0;
+}
+
+static void pach_runtime_storage_free(void)
+{
+    SceUID block_id = g_runtime_storage_id;
+
+    g_runtime_storage = NULL;
+    g_runtime_storage_id = -1;
+
+    if (block_id >= 0) {
+        (void)sceKernelFreePartitionMemory(block_id);
+    }
+}
 
 static int pach_feedback_needed(
     int startup)
@@ -1062,6 +1145,10 @@ static int pach_worker_thread(
         g_logger_ready = 1;
         pach_log_line("worker thread started");
         pach_log_line("plugin mode: GAME");
+        pach_log_hex32(
+            "dynamic runtime storage bytes",
+            (u32)sizeof(PachRuntimeStorage)
+        );
         pach_log_configuration();
         pach_log_line("waiting for game identification");
     }
@@ -1216,6 +1303,12 @@ int module_start(SceSize args, void *argp)
         return 0;
     }
 
+    result = pach_runtime_storage_allocate();
+
+    if (result < 0) {
+        return result;
+    }
+
     pach_notification_queue_reset(
         &g_notification_queue
     );
@@ -1229,6 +1322,7 @@ int module_start(SceSize args, void *argp)
     );
 
     if (result < 0) {
+        pach_runtime_storage_free();
         return result;
     }
 
@@ -1251,6 +1345,7 @@ int module_start(SceSize args, void *argp)
         pach_notification_queue_shutdown(
             &g_notification_queue
         );
+        pach_runtime_storage_free();
         return result;
     }
 
@@ -1271,6 +1366,7 @@ int module_start(SceSize args, void *argp)
         pach_notification_queue_shutdown(
             &g_notification_queue
         );
+        pach_runtime_storage_free();
         return result;
     }
 
@@ -1291,6 +1387,7 @@ int module_start(SceSize args, void *argp)
         pach_notification_queue_shutdown(
             &g_notification_queue
         );
+        pach_runtime_storage_free();
         return result;
     }
 
@@ -1318,6 +1415,7 @@ int module_start(SceSize args, void *argp)
         pach_notification_queue_shutdown(
             &g_notification_queue
         );
+        pach_runtime_storage_free();
         return result;
     }
 
@@ -1345,6 +1443,7 @@ int module_start(SceSize args, void *argp)
         pach_notification_queue_shutdown(
             &g_notification_queue
         );
+        pach_runtime_storage_free();
         return result;
     }
 
@@ -1396,6 +1495,8 @@ int module_stop(SceSize args, void *argp)
     pach_notification_queue_shutdown(
         &g_notification_queue
     );
+
+    pach_runtime_storage_free();
 
     if (g_logger_ready) {
         pach_log_line("module_stop complete");

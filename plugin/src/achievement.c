@@ -29,8 +29,9 @@ typedef enum PachEvaluationPass {
 } PachEvaluationPass;
 
 #define PACH_SCHEDULER_ENABLE_CONDITION_THRESHOLD 1024u
-#define PACH_SCHEDULER_WATCH_CANDIDATE_MAX 128u
+#define PACH_SCHEDULER_WATCH_CANDIDATE_MAX 256u
 #define PACH_SCHEDULER_BURST_TICKS 3u
+#define PACH_SCHEDULER_EXTREME_CONDITION_THRESHOLD 8192u
 
 typedef struct PachSchedulerWatchCandidate {
     u32 effective_address;
@@ -93,6 +94,23 @@ static int pach_operand_is_valid(const PachOperand *operand)
         operand->state != PACH_OPERAND_STATE_CURRENT) {
 
         return 0;
+    }
+
+    if (!pach_operand_is_memory(operand->type) &&
+        operand->memory_index != PACH_OPERAND_MEMORY_INDEX_NONE) {
+
+        return 0;
+    }
+
+    if (pach_operand_is_memory(operand->type) &&
+        operand->memory_index != PACH_OPERAND_MEMORY_INDEX_NONE) {
+
+        if (operand->memory_index < PACH_OPERAND_DIVISOR_MIN ||
+            operand->memory_index > PACH_OPERAND_DIVISOR_MAX ||
+            pach_operand_is_float(operand->type)) {
+
+            return 0;
+        }
     }
 
     return 1;
@@ -534,6 +552,7 @@ static int pach_definition_is_hit_sensitive(
 
         const PachAchievementGroup *group;
         u32 local_index;
+        int hit_chain_active = 0;
 
         if (group_index >= engine->group_count) {
             return 0;
@@ -550,9 +569,87 @@ static int pach_definition_is_hit_sensitive(
                     group->first_condition + local_index
                 ];
 
-            if (condition->hit_target > 1u ||
-                condition->flags == PACH_CONDITION_ADD_HITS ||
-                condition->flags == PACH_CONDITION_SUB_HITS) {
+            /*
+             * AddHits/SubHits chains commonly aggregate persistent flags.
+             * A one-hit cap makes each source latch once, so the chain does
+             * not require a full evaluation every video frame. The overall
+             * hit target on the final condition is an aggregate threshold,
+             * not a frame timer. This distinction is critical for large
+             * inventory/collection achievements such as Peace Walker's.
+             */
+            if (pach_condition_is_hit_modifier(condition->flags)) {
+                if (condition->hit_target != 1u) {
+                    return 1;
+                }
+
+                hit_chain_active = 1;
+                continue;
+            }
+
+            if (pach_condition_is_modifier(condition->flags) ||
+                pach_condition_is_link(condition->flags)) {
+
+                continue;
+            }
+
+            if (condition->hit_target > 1u &&
+                !hit_chain_active) {
+
+                return 1;
+            }
+
+            hit_chain_active = 0;
+        }
+
+        if (hit_chain_active) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+static int pach_definition_is_transition_sensitive(
+    const PachAchievementEngine *engine,
+    const PachAchievementDefinition *definition)
+{
+    u32 group_offset;
+
+    if (engine == NULL || definition == NULL) {
+        return 0;
+    }
+
+    for (group_offset = 0;
+         group_offset < definition->group_count;
+         ++group_offset) {
+
+        u32 group_index =
+            (u32)definition->first_group + group_offset;
+
+        const PachAchievementGroup *group;
+        u32 local_index;
+
+        if (group_index >= engine->group_count) {
+            return 0;
+        }
+
+        group = &engine->groups[group_index];
+
+        for (local_index = 0;
+             local_index < group->condition_count;
+             ++local_index) {
+
+            const PachAchievementCondition *condition =
+                &engine->conditions[
+                    group->first_condition + local_index
+                ];
+
+            if ((pach_operand_is_memory(condition->left.type) &&
+                 condition->left.state !=
+                    PACH_OPERAND_STATE_CURRENT) ||
+                (pach_operand_is_memory(condition->right.type) &&
+                 condition->right.state !=
+                    PACH_OPERAND_STATE_CURRENT)) {
 
                 return 1;
             }
@@ -569,8 +666,34 @@ static u8 pach_scheduler_choose_period(
 {
     int has_control;
 
-    if (pach_definition_is_hit_sensitive(engine, definition)) {
+    /*
+     * Delta and Prior operands describe frame transitions. Evaluating them
+     * on a distributed schedule can miss a one-frame state change,
+     * especially around mission teardown and pointer replacement. Keep
+     * transition-sensitive achievements at full rate.
+     */
+    if (pach_definition_is_transition_sensitive(engine, definition) ||
+        pach_definition_is_hit_sensitive(engine, definition)) {
+
         return 1u;
+    }
+
+    /*
+     * Very large definitions are long-lived aggregate checks. Spreading
+     * them across the 48-frame cycle avoids periodic multi-thousand-
+     * condition spikes while transition watches still request a full scan
+     * when common Delta/Prior addresses change.
+     */
+    if (condition_count > 1024u) {
+        return 96u;
+    }
+
+    if (condition_count > 512u) {
+        return 48u;
+    }
+
+    if (condition_count > 128u) {
+        return 24u;
     }
 
     if (definition->type == 1u || definition->type == 3u) {
@@ -1058,9 +1181,7 @@ static int pach_sample_operand(
 
     runtime = &engine->operand_runtime[runtime_index];
 
-    if (!runtime->initialized ||
-        runtime->effective_address != effective_address) {
-
+    if (!runtime->initialized) {
         runtime->effective_address = effective_address;
         runtime->current_value = new_value;
         runtime->previous_value = new_value;
@@ -1069,12 +1190,21 @@ static int pach_sample_operand(
         return PACH_MEMORY_OK;
     }
 
+    /*
+     * An indirect AddAddress chain can resolve to a different PSP address
+     * when a mission object is replaced. For Delta/Prior operands, the
+     * history belongs to the logical operand, not to one transient pointer
+     * target. Preserve that history across address changes so completion
+     * transitions are not discarded. Current-only operands do not consume
+     * the history, but using the same update path keeps behavior coherent.
+     */
     runtime->previous_value = runtime->current_value;
 
     if (new_value != runtime->current_value) {
         runtime->prior_value = runtime->current_value;
     }
 
+    runtime->effective_address = effective_address;
     runtime->current_value = new_value;
     return PACH_MEMORY_OK;
 }
@@ -1116,19 +1246,32 @@ static int pach_read_operand_bits(
     switch (operand->state) {
     case PACH_OPERAND_STATE_CURRENT:
         *value = runtime->current_value;
-        return PACH_MEMORY_OK;
+        break;
 
     case PACH_OPERAND_STATE_DELTA:
         *value = runtime->previous_value;
-        return PACH_MEMORY_OK;
+        break;
 
     case PACH_OPERAND_STATE_PRIOR:
         *value = runtime->prior_value;
-        return PACH_MEMORY_OK;
+        break;
 
     default:
         return PACH_ACHIEVEMENT_ERROR_OPERAND;
     }
+
+    if (operand->memory_index != PACH_OPERAND_MEMORY_INDEX_NONE) {
+        if (operand->memory_index < PACH_OPERAND_DIVISOR_MIN ||
+            operand->memory_index > PACH_OPERAND_DIVISOR_MAX ||
+            pach_operand_is_float(operand->type)) {
+
+            return PACH_ACHIEVEMENT_ERROR_OPERAND;
+        }
+
+        *value /= (u32)operand->memory_index;
+    }
+
+    return PACH_MEMORY_OK;
 }
 
 static int pach_sample_group(
@@ -2677,7 +2820,10 @@ int pach_achievement_engine_tick(
 
         if (watch_changed) {
             engine->scheduler_burst_ticks =
-                PACH_SCHEDULER_BURST_TICKS;
+                engine->condition_count >
+                    PACH_SCHEDULER_EXTREME_CONDITION_THRESHOLD
+                ? 1u
+                : PACH_SCHEDULER_BURST_TICKS;
         }
     }
 

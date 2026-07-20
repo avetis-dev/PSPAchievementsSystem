@@ -1,4 +1,4 @@
-# Installation Guide — v1.0.0
+# Installation Guide — v2.0.0
 
 This guide covers a clean installation, migration from legacy repository releases, first-start verification, updates, backups, and uninstallation.
 
@@ -9,7 +9,7 @@ You need:
 - a real PSP console;
 - ARK-4 custom firmware;
 - Memory Stick storage available as `ms0:`;
-- the v1.0.0 plugin release archive;
+- the v2.0.0 plugin release archive;
 - the matching supported-game package archive;
 - one of the exact game IDs listed in `SUPPORTED_GAMES.md`.
 
@@ -19,7 +19,7 @@ Officially verified hardware:
 PSP-3000 + ARK-4 + ms0:
 ```
 
-Other PSP models may work, but they are not yet officially verified. PSP Go internal `ef0:` storage is not supported in v1.0.0.
+Other PSP models may work, but they are not yet officially verified. PSP Go internal `ef0:` storage is not supported in v2.0.0.
 
 ## 2. Files used by the plugin
 
@@ -120,9 +120,18 @@ ULUS-10469.pach
 ULUS-10469.pbad
 ULES-00151.pach
 ULES-00151.pbad
+ULES-00502.pach
+ULES-00502.pbad
 ```
 
-You may install all three games at once. The plugin automatically selects the package matching the running Game ID.
+An experimental package is also available for Metal Gear Solid: Peace Walker USA:
+
+```text
+ULUS-10509.pach
+ULUS-10509.pbad
+```
+
+You may install all packages at once. The plugin automatically selects the package matching the running Game ID. Do not rename `ULES-00502.pach` for `ULUS-10160`: those Vice City Stories revisions use different memory layouts.
 
 ### Step 5 — Confirm the final layout
 
@@ -139,7 +148,11 @@ ms0:/
         │   ├── ULUS-10469.pach
         │   ├── ULUS-10469.pbad
         │   ├── ULES-00151.pach
-        │   └── ULES-00151.pbad
+        │   ├── ULES-00151.pbad
+        │   ├── ULES-00502.pach
+        │   ├── ULES-00502.pbad
+        │   ├── ULUS-10509.pach
+        │   └── ULUS-10509.pbad
         ├── profiles/
         └── logs/
 ```
@@ -165,7 +178,7 @@ ms0:/SEPLUGINS/PSPAchievementsNG/logs/plugin.log
 A successful startup contains:
 
 ```text
-PSPAchievementsNG 1.0.0
+PSPAchievementsNG 2.0.0
 config loaded
 game id: ULUS-10285
 game identification succeeded

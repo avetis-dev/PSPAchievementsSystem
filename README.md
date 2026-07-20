@@ -9,21 +9,26 @@
   <a href="https://github.com/avetis-dev/PSPAchievementsSystem/releases"><img alt="Release" src="https://img.shields.io/github/v/release/avetis-dev/PSPAchievementsSystem?display_name=tag"></a>
   <img alt="Platform" src="https://img.shields.io/badge/platform-PSP-2d6cdf">
   <img alt="Runtime" src="https://img.shields.io/badge/runtime-PSPAchievementsNG-4c8f2f">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-brightgreen">
+  <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-brightgreen">
 </p>
 
 PSP Achievements System is a GAME-mode kernel plugin for custom-firmware PSP consoles. The current runtime, **PSPAchievementsNG**, evaluates achievement conditions directly from game memory and provides unlock notifications, sound, badge artwork, persistent profiles, live progress, and an in-game achievement browser.
 
-The plugin works locally after installation. Version **1.0.0** does not require an account or a permanent network connection.
+The plugin works locally after installation. Version **2.0.0** does not require an account or a permanent network connection.
 
 > [!IMPORTANT]
-> Version 1.0.0 is a complete replacement for the legacy releases previously published in this repository. Perform a clean migration instead of copying the new files over the old `PspAchievements.prx` / `PSP/ACH` layout.
+> This public repository and its releases do **not** contain RetroAchievements trigger definitions or prebuilt `.pach` packages. RetroAchievements does not permit its achievement condition logic to be reused or redistributed. The project is now pursuing an official `rcheevos`/`rc_client` integration; until that work is complete, the public build alone cannot activate RetroAchievements sets.
+
+Achievement metadata and badge artwork are provided by [RetroAchievements](https://retroachievements.org/). PSP Achievements System is independent and is not affiliated with or endorsed by RetroAchievements.
+
+> [!IMPORTANT]
+> PSPAchievementsNG 2.0.0 is compatible with profiles created by PSPAchievementsNG 1.0.0. Users of the older legacy `PspAchievements.prx` / `PSP/ACH` implementation must perform a clean migration.
 
 ## Features
 
 - Real-time achievement evaluation on physical PSP hardware.
 - Automatic game detection by PSP Game ID.
-- Independent `.pach` packages for every supported game and region.
+- Runtime support for separately supplied compatible achievement packages; none are distributed publicly by this project.
 - Optional `.pbad` badge packs with locked and unlocked artwork.
 - Achievement notifications with a synthesized unlock sound.
 - Persistent per-game profiles stored on the Memory Stick.
@@ -42,7 +47,7 @@ The plugin works locally after installation. Version **1.0.0** does not require 
 | PSP-3000, ARK-4, Memory Stick path `ms0:` | **Tested and supported** |
 | PSP-1000 / PSP-2000 / PSP Street with ARK-4 | Expected to work; community verification needed |
 | PSP Go with external M2 storage exposed as `ms0:` | Untested |
-| PSP Go internal storage `ef0:` | Not supported in v1.0.0 |
+| PSP Go internal storage `ef0:` | Not supported in v2.0.0 |
 | PRO-C / LME | Untested |
 | PS Vita / Adrenaline | Not supported or tested |
 | PPSSPP | Not a runtime target; the plugin is intended for real PSP hardware |
@@ -59,41 +64,38 @@ Game support is tied to the **exact PSP Game ID and executable revision**. A pac
 | Silent Hill: Origins | USA | `ULUS-10285` | 66 | 666 | Full-rate | Tested on hardware |
 | Dante's Inferno | USA | `ULUS-10469` | 63 | 666 | Full-rate | Tested on hardware |
 | Grand Theft Auto: Liberty City Stories | Europe v3.00 | `ULES-00151` | 105 | 1016 | Adaptive | Tested on hardware |
+| Grand Theft Auto: Vice City Stories | Europe v1.02 | `ULES-00502` | 190 | 1532 | Adaptive | Tested on hardware |
+| Metal Gear Solid: Peace Walker | USA | `ULUS-10509` | 110 | 2100 | Ultra-heavy adaptive | Experimental |
 
-GTA: Liberty City Stories requires the European `ULES-00151` release. The USA release is not currently supported. GTA may still have a small performance cost because its package contains substantially more conditions than the other tested games.
+Both GTA packages require the exact European revisions listed above. The USA and Russian `ULUS-10160` release of Vice City Stories is not compatible with the European package. Large sets may still have a small performance cost because they contain substantially more conditions than the original three games.
 
 See [Supported Games](docs/SUPPORTED_GAMES.md) for exact notes.
 
 ## Release files
 
-A normal v1.0.0 installation uses two release assets:
+The public v2.0.0 release provides:
 
 ```text
-PSPAchievementsSystem-v1.0.0.zip
-PSPAchievementsSystem-v1.0.0-supported-games.zip
+PSPAchievementsSystem-v2.0.0.zip
 ```
 
-The main archive contains the plugin, default configuration, and documentation. The supported-games archive contains the matching `.pach` achievement packages and `.pbad` badge packs for the three tested games.
+The archive contains the plugin, default configuration, documentation, and permitted badge artwork. It intentionally contains no `.pach` trigger packages.
 
 ## Quick installation
 
 1. Back up any existing PSP achievement profiles.
 2. Remove or disable the legacy `PspAchievements.prx` plugin entry.
-3. Extract the v1.0.0 plugin archive.
+3. Extract the v2.0.0 plugin archive.
 4. Copy its `SEPLUGINS` directory to the root of the Memory Stick.
-5. Copy the contents of the supported-games archive to:
-
-   ```text
-   ms0:/SEPLUGINS/PSPAchievementsNG/games/
-   ```
-
-6. Add this line to `ms0:/SEPLUGINS/GAME.TXT`:
+5. Add this line to `ms0:/SEPLUGINS/GAME.TXT`:
 
    ```text
    ms0:/SEPLUGINS/PSPAchievementsNG/PSPAchievementsNG.prx 1
    ```
 
-7. Restart the PSP completely and launch a supported game.
+6. Restart the PSP completely.
+
+The public build will load, but RetroAchievements unlock support requires the planned official `rc_client` integration. Prebuilt trigger packages are not provided.
 
 Read the complete [Installation Guide](docs/INSTALLATION.md), especially when upgrading from a legacy release.
 
@@ -112,7 +114,11 @@ ms0:/
         │   ├── ULUS-10469.pach
         │   ├── ULUS-10469.pbad
         │   ├── ULES-00151.pach
-        │   └── ULES-00151.pbad
+        │   ├── ULES-00151.pbad
+        │   ├── ULES-00502.pach
+        │   ├── ULES-00502.pbad
+        │   ├── ULUS-10509.pach
+        │   └── ULUS-10509.pbad
         ├── profiles/
         │   ├── ULUS-10285.dat
         │   ├── ULUS-10285.bak
@@ -178,7 +184,7 @@ show_badges = 1
 mode = auto
 ```
 
-Keep `performance.mode = auto` unless diagnosing a problem. Forcing `full` can make GTA: Liberty City Stories difficult to play.
+Keep `performance.mode = auto` unless diagnosing a problem. Forcing `full` can make GTA and Peace Walker difficult to play.
 
 See [Configuration](docs/CONFIGURATION.md).
 
@@ -193,7 +199,7 @@ ms0:/SEPLUGINS/PSPAchievementsNG/logs/plugin.log
 A normal startup contains lines similar to:
 
 ```text
-PSPAchievementsNG 1.0.0
+PSPAchievementsNG 2.0.0
 config loaded
 game identification succeeded
 game package found
@@ -255,13 +261,13 @@ The repository also includes GitHub Actions workflows that build the PRX and cre
 
 ## Known limitations
 
-- Version 1.0.0 is offline-only; there are no accounts, cloud synchronization, public profiles, leaderboards, or social sharing.
+- Version 2.0.0 is offline-only; there are no accounts, cloud synchronization, public profiles, leaderboards, or social sharing.
 - Only the exact Game IDs listed above are currently supported.
 - PSP Go internal `ef0:` storage is not supported.
 - Very large achievement sets can still cause a small performance cost.
 - Some achievement definitions intentionally reject cheat-enabled game states.
 - Badge packs are optional; achievements still work when `.pbad` is missing.
-- Menu thread suspension has only been verified with the three listed games.
+- Metal Gear Solid: Peace Walker support is experimental and needs additional unlock testing.
 
 See [Troubleshooting](docs/TROUBLESHOOTING.md) before opening an issue.
 

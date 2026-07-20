@@ -1,4 +1,4 @@
-# Building PSPAchievementsNG v1.0.0
+# Building PSPAchievementsNG v2.0.0
 
 ## Requirements
 
@@ -35,14 +35,14 @@ The validator rejects captures, raw JSON, badge caches, player profiles, logs, g
 ## Create the public end-user ZIP
 
 ```bash
-make release VERSION=1.0.0
+make release VERSION=2.0.0
 ```
 
 Output:
 
 ```text
-release/PSPAchievementsSystem-v1.0.0.zip
-release/PSPAchievementsSystem-v1.0.0.zip.sha256
+release/PSPAchievementsSystem-v2.0.0.zip
+release/PSPAchievementsSystem-v2.0.0.zip.sha256
 ```
 
 The default public build contains the runtime, configuration, and documentation but does not embed generated game packages.
@@ -51,7 +51,7 @@ The default public build contains the runtime, configuration, and documentation 
 
 ```bash
 python3 scripts/make_release.py \
-  --version 1.0.0 \
+  --version 2.0.0 \
   --game-data-dir /path/to/local/games
 ```
 

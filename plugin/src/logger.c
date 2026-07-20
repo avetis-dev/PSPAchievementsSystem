@@ -55,7 +55,7 @@ int pach_log_init(void)
 {
     static const char header[] =
         "================================\n"
-        "PSPAchievementsNG 1.0.0\n"
+        "PSPAchievementsNG 2.0.0\n"
         "log initialized\n"
         "================================\n";
 

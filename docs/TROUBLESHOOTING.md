@@ -1,4 +1,4 @@
-# Troubleshooting — v1.0.0
+# Troubleshooting — v2.0.0
 
 Start every diagnosis with:
 
@@ -91,10 +91,10 @@ Then exit and restart the game. Configuration is loaded only at game startup.
 
 ## Menu flickers, tears, or moves
 
-Version 1.0.0 draws the menu only when it opens or the selection changes, while the game threads are temporarily paused. Confirm the log header says:
+Version 2.0.0 draws the menu only when it opens or the selection changes, while the game threads are temporarily paused. Confirm the log header says:
 
 ```text
-PSPAchievementsNG 1.0.0
+PSPAchievementsNG 2.0.0
 ```
 
 Replace old PRX files and retest. Include the PSP model and game title when reporting persistent rendering problems.
@@ -170,7 +170,7 @@ Legacy `.prof` files are not compatible with PSPAchievementsNG profiles.
 
 ## PSP hangs when leaving a game
 
-- Confirm version 1.0.0 is installed.
+- Confirm version 2.0.0 is installed.
 - Close the achievement menu before pressing HOME and compare the result.
 - Disable the plugin and retest.
 - Include the last 100 lines of `plugin.log`.
@@ -186,11 +186,11 @@ Europe v3.00
 ULES-00151
 ```
 
-The USA release requires a separate package and is not supported in v1.0.0.
+The USA release requires a separate address port and is not supported in v2.0.0.
 
 ## PSP Go
 
-The runtime uses `ms0:` paths. PSP Go internal storage uses `ef0:` and is not supported in v1.0.0. External M2 operation has not been verified.
+The runtime uses `ms0:` paths. PSP Go internal storage uses `ef0:` and is not supported in v2.0.0. External M2 operation has not been verified.
 
 ## What to include in a GitHub issue
 

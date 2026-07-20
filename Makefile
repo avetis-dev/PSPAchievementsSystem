@@ -1,6 +1,6 @@
 .PHONY: all plugin clean rebuild dist public-check release
 
-VERSION ?= 1.0.0
+VERSION ?= 2.0.0
 
 all: plugin
 

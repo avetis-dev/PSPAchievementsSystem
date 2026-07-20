@@ -1,6 +1,6 @@
 # Migration from Legacy Releases
 
-Version 1.0.0 uses a new runtime and directory layout. It replaces the legacy `PspAchievements.prx` implementation previously published in this repository.
+PSPAchievementsNG 1.0.0 introduced the new runtime and directory layout. Version 2.0.0 keeps that layout and profile format while expanding the engine for much larger game sets.
 
 ## Legacy files to look for
 
@@ -38,4 +38,4 @@ They may be kept as an offline backup on a computer, but do not leave the old PR
 
 ## Repository version note
 
-The repository contains older `v1.0.1`–`v1.0.3` tags from the legacy implementation. The new PSPAchievementsNG-based `v1.0.0` release is a deliberate reset of the runtime line and should be identified by the `PSPAchievementsNG 1.0.0` log header.
+The repository contains older `v1.0.1`–`v1.0.3` tags from the legacy implementation. The current release should be identified by the `PSPAchievementsNG 2.0.0` log header.

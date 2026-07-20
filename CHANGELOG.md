@@ -1,5 +1,15 @@
 # Changelog
 
+# v2.0.0 — Large Sets and Vice City Stories
+
+- Added verified support for Grand Theft Auto: Vice City Stories Europe (`ULES-00502`).
+- Raised the runtime capacity to 192 achievements, 512 groups, and 12,288 conditions.
+- Moved the large evaluator storage out of the PRX static image so ARK-4 can load the plugin reliably.
+- Improved Delta/Prior transition handling for large adaptively scheduled sets.
+- Expanded badge packs to 192 images.
+- Added experimental package support for Metal Gear Solid: Peace Walker USA (`ULUS-10509`).
+- Kept existing v1.0.0 game packages and profiles compatible.
+
 ## v1.0.0 — First PSPAchievementsNG Release
 
 Version 1.0.0 is a complete replacement for the legacy runtime previously published in this repository.

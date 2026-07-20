@@ -1,15 +1,20 @@
-Place matching game packages in this directory.
+This public release intentionally contains no .pach trigger packages.
 
-Required:
-  GAME-ID.pach
-
-Optional badge artwork:
+Permitted badge artwork:
   GAME-ID.pbad
 
-The filename and internal Game ID must match the running game exactly.
-Packages from another region or executable revision are not interchangeable.
+Badge artwork does not contain achievement condition logic and cannot activate
+achievements by itself. Official rcheevos/rc_client integration is planned.
 
-Supported in v1.0.0:
+Tested in v2.0.0:
   ULUS-10285  Silent Hill: Origins USA
   ULUS-10469  Dante's Inferno USA
   ULES-00151  GTA: Liberty City Stories Europe v3.00
+  ULES-00502  GTA: Vice City Stories Europe v1.02
+
+Experimental in v2.0.0:
+  ULUS-10509  Metal Gear Solid: Peace Walker USA
+
+Important:
+  ULUS-10160 is not compatible with the ULES-00502 package. Renaming
+  ULES-00502.pach does not translate the memory addresses between revisions.

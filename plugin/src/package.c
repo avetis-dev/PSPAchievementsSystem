@@ -181,6 +181,23 @@ static int pach_package_operand_valid(const PachOperand *operand)
         return 0;
     }
 
+    if (!memory_operand &&
+        operand->memory_index != PACH_OPERAND_MEMORY_INDEX_NONE) {
+
+        return 0;
+    }
+
+    if (memory_operand &&
+        operand->memory_index != PACH_OPERAND_MEMORY_INDEX_NONE) {
+
+        if (operand->memory_index < PACH_OPERAND_DIVISOR_MIN ||
+            operand->memory_index > PACH_OPERAND_DIVISOR_MAX ||
+            operand->type == PACH_OPERAND_MEMORY_FLOAT) {
+
+            return 0;
+        }
+    }
+
     return 1;
 }
 
@@ -572,23 +589,21 @@ int pach_package_load(
 
         condition->left.type = condition_data[0];
         condition->left.state = condition_data[1];
-        condition->left.memory_index = PACH_OPERAND_MEMORY_INDEX_NONE;
+        condition->left.memory_index =
+            pach_package_read_u16_le(&condition_data[2]);
         condition->left.value = pach_package_read_u32_le(&condition_data[4]);
 
         condition->right.type = condition_data[8];
         condition->right.state = condition_data[9];
-        condition->right.memory_index = PACH_OPERAND_MEMORY_INDEX_NONE;
+        condition->right.memory_index =
+            pach_package_read_u16_le(&condition_data[10]);
         condition->right.value = pach_package_read_u32_le(&condition_data[12]);
 
         condition->comparison = condition_data[16];
         condition->flags = condition_data[17];
         condition->hit_target = pach_package_read_u16_le(&condition_data[18]);
 
-        if (condition_data[2] != 0xFFu ||
-            condition_data[3] != 0xFFu ||
-            condition_data[10] != 0xFFu ||
-            condition_data[11] != 0xFFu ||
-            !pach_package_operand_valid(&condition->left) ||
+        if (!pach_package_operand_valid(&condition->left) ||
             !pach_package_operand_valid(&condition->right) ||
             condition->flags > PACH_CONDITION_SUB_HITS) {
 
